@@ -40,7 +40,7 @@ actores y **solo HTTP**:
 1. Sube el repositorio a GitHub/GitLab.
 2. En Render: **New → Blueprint** y elige el repo. Render lee `render.yaml` y crea
    el web service.
-3. Cuando termine el deploy, entra en **Dashboard → allconnect → Environment** y
+3. Cuando termine el deploy, entra en **Dashboard → easy-connection → Environment** y
    copia el valor generado de **`LAB_TOKEN`**. Ese es el token que usarán los
    agentes y `labssh`.
 
@@ -64,7 +64,7 @@ Variables de entorno:
 | `LAB_HISTORY` | `20` |
 | `PYTHON_VERSION` | `3.13.5` |
 
-La URL queda como `https://allconnect-xxxx.onrender.com`. **El TLS lo termina el
+La URL queda como `https://easy-connection.onrender.com`. **El TLS lo termina el
 proxy de Render**: el contenedor solo habla HTTP en `$PORT`, no configures
 certificados ni `--ssl-keyfile`.
 
@@ -88,6 +88,27 @@ pública real del agente (`X-Forwarded-For`) y no la del proxy.
   consume ~730 h, así que no conviene tener otros servicios free encendidos.
 - Un solo proceso: no escales a varias instancias con `hosts.json` compartido.
 
+### Si el deploy falla con `Falta LAB_TOKEN`
+
+El servicio no arranca si `LAB_TOKEN` no existe en el proceso. Comprueba:
+
+1. Estás editando **el servicio correcto** (el de la URL
+   `https://easy-connection.onrender.com`), no otro del mismo dashboard.
+2. **Environment → Add Environment Variable**: key exactamente `LAB_TOKEN`
+   (sin espacios), value tu secreto, y pulsa **Save Changes**.
+3. En **Events** debe aparecer un deploy **posterior** al guardado. Si no,
+   lánzalo con **Manual Deploy → Deploy latest commit**.
+4. En los logs, la primera línea de la app muestra qué variables ve el proceso:
+
+   ```
+   [all_connect] Python 3.13.5 | LAB_DB=/tmp/hosts.json | LAB_HISTORY=20 | LAB_*= ['LAB_DB', 'LAB_HISTORY', 'LAB_TOKEN']
+   ```
+
+   Si `LAB_*` sale como `ninguna`, la variable está en otro servicio o en un
+   *Environment Group* que no está vinculado.
+5. Si el servicio está gestionado por un **Blueprint**, las variables se toman
+   de `render.yaml`; edítalo, haz `git push` y sincroniza el Blueprint.
+
 ## Configurar un agente (actor 2)
 
 Copia `lab-agent-setup.sh` e `ip-reporter.sh` al equipo y ejecuta como root:
@@ -96,7 +117,7 @@ Copia `lab-agent-setup.sh` e `ip-reporter.sh` al equipo y ejecuta como root:
 sudo LAB_TOKEN=<el-token-de-render> ./lab-agent-setup.sh \
   --user dev \
   --key-file ~/.ssh/id_ed25519.pub \
-  --server-url https://allconnect-xxxx.onrender.com \
+  --server-url https://easy-connection.onrender.com \
   --name vm1
 ```
 
@@ -105,7 +126,7 @@ sudo LAB_TOKEN=<el-token-de-render> ./lab-agent-setup.sh \
 | `--user` | Usuario al que se le instala la clave pública. |
 | `--key-file` | Clave pública a autorizar en `authorized_keys`. |
 | `--key-only` | Desactiva autenticación por contraseña (solo clave). |
-| `--server-url` | URL del servidor, p. ej. `https://allconnect-xxxx.onrender.com`. |
+| `--server-url` | URL del servidor, p. ej. `https://easy-connection.onrender.com`. |
 | `--name` | Nombre con el que se registra el host (por defecto, `hostname`). |
 | `--cacert` | Solo si usas un servidor propio con CA privada; en Render **no**. |
 | `--no-reporter` | Solo configura SSH, no instala el reporter. |
@@ -120,7 +141,7 @@ quede visible en `ps`.
 `/etc/lab-agent.conf`:
 
 ```ini
-SERVER_URL=https://allconnect-xxxx.onrender.com
+SERVER_URL=https://easy-connection.onrender.com
 TOKEN=<el-token-de-render>
 NAME=vm1
 # IFACE=eth0                   # opcional: forzar interfaz
@@ -136,7 +157,7 @@ El reporter usa `ip monitor address route` para reaccionar a cambios de red y
 Panel web:
 
 ```
-https://allconnect-xxxx.onrender.com/?token=<el-token-de-render>
+https://easy-connection.onrender.com/?token=<el-token-de-render>
 ```
 
 Muestra por máquina la IP reportada, la IP de origen vista por el servidor, la
@@ -160,7 +181,7 @@ cambios de IP o de origen.
 curl -fsS -H "Authorization: Bearer $LAB_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name":"vm1","ip":"10.0.0.5"}' \
-  https://allconnect-xxxx.onrender.com/report
+  https://easy-connection.onrender.com/report
 ```
 
 ## Uso del cliente
@@ -168,7 +189,7 @@ curl -fsS -H "Authorization: Bearer $LAB_TOKEN" \
 `~/.config/labssh.conf`:
 
 ```ini
-SERVER_URL=https://allconnect-xxxx.onrender.com
+SERVER_URL=https://easy-connection.onrender.com
 TOKEN=<el-token-de-render>
 DEFAULT_USER=dev               # opcional
 ```

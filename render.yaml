@@ -4,11 +4,13 @@
 # No abre UDP ni enruta nada; el TLS lo termina el proxy de Render.
 #
 # Tras el primer deploy, copia el valor generado de LAB_TOKEN desde
-# Dashboard > allconnect > Environment y úsalo en los agentes y en labssh.
+# Dashboard > easy-connection > Environment y úsalo en los agentes y en labssh.
+#
+# URL resultante: https://easy-connection.onrender.com
 
 services:
   - type: web
-    name: allconnect
+    name: easy-connection
     runtime: python
     plan: free
     region: oregon

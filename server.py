@@ -20,6 +20,7 @@ import json
 import os
 import re
 import secrets
+import sys
 import tempfile
 import threading
 import time
@@ -28,14 +29,28 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-TOKEN = os.environ.get("LAB_TOKEN", "")
+# .strip(): evita fallos si el valor se pegó con espacios o salto de línea.
+TOKEN = os.environ.get("LAB_TOKEN", "").strip()
+LAB_VARS = sorted(k for k in os.environ if k.startswith("LAB_"))
 if not TOKEN:
-    raise RuntimeError("Falta LAB_TOKEN: define el token compartido del laboratorio")
+    raise RuntimeError(
+        "Falta LAB_TOKEN. En Render: Dashboard > servicio > Environment > "
+        "Add Environment Variable (key=LAB_TOKEN, value=tu secreto) y pulsa "
+        "Save Changes; después espera el redeploy. "
+        f"Variables LAB_* detectadas en este proceso: {LAB_VARS or 'ninguna'}"
+    )
 DB = os.environ.get("LAB_DB", "hosts.json")
 HISTORY = max(1, int(os.environ.get("LAB_HISTORY", "20")))
 NAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9._-]{0,62}$")
 lock = threading.Lock()
 app = FastAPI(title="all_connect", version="0.2.0")
+
+# Diagnóstico de arranque: nombres de variables (nunca sus valores).
+print(
+    f"[all_connect] Python {sys.version.split()[0]} | LAB_DB={DB} | "
+    f"LAB_HISTORY={HISTORY} | LAB_*={LAB_VARS or 'ninguna'}",
+    flush=True,
+)
 
 
 class Report(BaseModel):
