@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Entornos virtuales
+env/
+venv/
+.venv/
+ENV/
+.python-version
+
+# Secretos y material TLS del servidor
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.csr
+*.srl
+*.p12
+*.pfx
+
+# Configuraciones con token (agente y cliente)
+lab-agent.conf
+labssh.conf
+*.conf.local
+
+# Estado generado en ejecución
+hosts.json
+hosts.json.tmp
+*.log
+last_ip
+
+# Editores y sistema operativo
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

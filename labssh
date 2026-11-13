@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# labssh list            -> lista hosts con antigüedad del último reporte
+# labssh <nombre> [user] [args ssh...]
+# Config en ~/.config/labssh.conf: SERVER_URL=...  TOKEN=...  [CACERT=...]  [DEFAULT_USER=...]
+set -euo pipefail
+command -v jq >/dev/null || { echo "Necesitas jq"; exit 1; }
+# shellcheck disable=SC1090
+source "${LABSSH_CONF:-$HOME/.config/labssh.conf}"
+api() { curl -fsS --max-time 10 ${CACERT:+--cacert "$CACERT"} -H "Authorization: Bearer $TOKEN" "$SERVER_URL$1"; }
+
+[[ $# -ge 1 ]] || { sed -n '2,4p' "$0"; exit 1; }
+if [[ "$1" == "list" ]]; then
+  now=$(date +%s)
+  api /hosts | jq -r --argjson now "$now" 'to_entries[] | "\(.key)\t\(.value.ip)\t\($now - .value.updated)s"' | column -t
+  exit 0
+fi
+name="$1"; shift
+user="${1:-${DEFAULT_USER:-$USER}}"; [[ $# -gt 0 ]] && shift
+ip=$(api "/hosts/$name" | jq -r .ip)
+exec ssh "$user@$ip" "$@"
