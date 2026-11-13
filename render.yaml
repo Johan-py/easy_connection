@@ -1,0 +1,30 @@
+# Despliegue de all_connect en Render (https://render.com)
+#
+# Un único web service: recibe POST /report y muestra GET / (panel).
+# No abre UDP ni enruta nada; el TLS lo termina el proxy de Render.
+#
+# Tras el primer deploy, copia el valor generado de LAB_TOKEN desde
+# Dashboard > allconnect > Environment y úsalo en los agentes y en labssh.
+
+services:
+  - type: web
+    name: allconnect
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    # Render inyecta $PORT y habla HTTP hacia el contenedor.
+    # --proxy-headers hace que seen_from sea la IP real del agente (X-Forwarded-For).
+    startCommand: "uvicorn server:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips='*'"
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.5"
+      - key: LAB_TOKEN
+        generateValue: true
+      # En Render el filesystem es efímero: hosts.json se pierde al dormir o
+      # redeployar. Es suficiente para el laboratorio (respuesta: "en memoria").
+      - key: LAB_DB
+        value: /tmp/hosts.json
+      - key: LAB_HISTORY
+        value: "20"
