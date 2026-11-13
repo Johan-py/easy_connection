@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Detecta cambios de IP y los reporta por HTTPS. Config en /etc/lab-agent.conf:
-#   SERVER_URL=https://allconnect-xxxx.onrender.com   TOKEN=...   NAME=maquina1
+#   SERVER_URL=https://easy-connection.onrender.com   TOKEN=...   NAME=maquina1
 #   (opcional) IFACE=eth0  CACERT=/etc/lab-agent-ca.pem  HEARTBEAT=300  POLL=30
 set -u
 CONF="${LAB_CONF:-/etc/lab-agent.conf}"

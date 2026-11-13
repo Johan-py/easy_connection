@@ -2,7 +2,7 @@
 # Configura SSH (idempotente) e instala el reporter de IP como servicio systemd.
 # Uso (root):
 #   LAB_TOKEN=... ./lab-agent-setup.sh --user dev --key-file ~/.ssh/id_ed25519.pub \
-#       --server-url https://allconnect-xxxx.onrender.com --name vm1 [--cacert ca.pem] [--key-only] [--no-reporter]
+#       --server-url https://easy-connection.onrender.com --name vm1 [--cacert ca.pem] [--key-only] [--no-reporter]
 # El token se lee de la variable LAB_TOKEN (no por argumento: se vería en `ps`).
 set -euo pipefail
 [[ $EUID -eq 0 ]] || { echo "Ejecuta como root"; exit 1; }
